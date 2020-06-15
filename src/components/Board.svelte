@@ -1,10 +1,15 @@
 <script>
+  import { getSecondName } from "../models/secondName";
+  import { shouldAddCivility } from "../models/civility";
+
   const placeholder = "John";
   let inputName = "";
   let name = "";
 
   function handleGenerate() {
-    name = `Abu ${inputName}`;
+    if (inputName) {
+      name = `${shouldAddCivility()}${inputName} ${getSecondName()}`;
+    }
   }
 </script>
 
@@ -31,6 +36,15 @@
     padding: 5px;
     margin-top: 10px;
   }
+
+  .generateBtn:hover {
+    cursor: pointer;
+  }
+
+  .generatedName {
+    font-size: 18px;
+    font-weight: 700;
+  }
 </style>
 
 <div class="wrapper">
@@ -40,6 +54,6 @@
   </button>
   {#if name}
     <p>Your jihad name is :</p>
-    <p>{name}</p>
+    <p class="generatedName">{name}</p>
   {/if}
 </div>
