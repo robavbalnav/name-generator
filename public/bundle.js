@@ -69,6 +69,12 @@ var app = (function () {
     function detach(node) {
         node.parentNode.removeChild(node);
     }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
+        }
+    }
     function element(name) {
         return document.createElement(name);
     }
@@ -95,6 +101,19 @@ var app = (function () {
         if (value != null || input.value) {
             input.value = value;
         }
+    }
+    function select_option(select, value) {
+        for (let i = 0; i < select.options.length; i += 1) {
+            const option = select.options[i];
+            if (option.__value === value) {
+                option.selected = true;
+                return;
+            }
+        }
+    }
+    function select_value(select) {
+        const selected_option = select.querySelector(':checked') || select.options[0];
+        return selected_option && selected_option.__value;
     }
     function custom_event(type, detail) {
         const e = document.createEvent('CustomEvent');
@@ -352,6 +371,15 @@ var app = (function () {
         dispatch_dev("SvelteDOMSetData", { node: text, data });
         text.data = data;
     }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
+    }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
             if (!~keys.indexOf(slot_key)) {
@@ -376,53 +404,370 @@ var app = (function () {
         $inject_state() { }
     }
 
-    var origins = [
-      "al-Muhajir",
-      "al-Ansar",
-      "al-Almani",
-      "al-Amriki",
-      "al-Jazrawi",
-      "al-Bosni",
-      "al-Brazili",
-      "al-Albani",
-      "al-Kosovi",
-      "al-Sandžaki",
-      "al-Faransi",
-      "al-Shishani",
-      "al-Falluji",
-      "al-Anbari"
+    const hash = (s) => {
+      return s.split("").reduce((acc, value) => {
+        acc = (acc << 5) - acc + value.charCodeAt(0);
+        return acc & acc;
+      }, 0);
+    };
+
+    const origins = [
+      {
+        id: "saudi",
+        value: "al-Muhajir",
+      },
+      {
+        id: "german",
+        value: "al-Almani",
+      },
+      {
+        id: "american",
+        value: "al-Amriki",
+      },
+      {
+        id: "bosnian",
+        value: "al-Bosni",
+      },
+      {
+        id: "albanian",
+        value: "al-Albani",
+      },
+      {
+        id: "brazilian",
+        value: "al-Brazili",
+      },
+      {
+        id: "french",
+        value: "al-Faransi",
+      },
+      {
+        id: "tunisian",
+        value: "al-Tunsi",
+      },
     ];
 
-    var professions = [
-      "al Tebbeyah",
-      "al Tabib",
-      "al Muhandis",
-      "al Zayif",
-      "al Matabikh"
+    const getFromId = (id) => {
+      const origin = origins.find((origin) => origin.id === id);
+      return origin ? origin.value : "";
+    };
+
+    var professions = ["Tebbeyah", "Tabib", "Muhandis", "Zayif", "Matabikh"];
+
+    var organizations = [
+      "Abu Sayyaf",
+      "Al-Muhajiroun",
+      "Al-Mulathameen",
+      "Ansar Al-Furqan",
+      "Ansar al-Jihad",
+      "Ansar al-Sharia",
+      "Ansar al-Din",
+      "Bay'at al-Imam",
+      "Boko Haram",
+      "Ghuraba al-Sham",
+      "Hizbul Islam",
+      "Hamas",
+      "Hezbollah",
+      "Izz ad-Din al-Qassam",
+      "Jabhatul Islamiya",
+      "Jaish ul-Adl",
+      "Jaljalat",
+      "Jamaah Ansharut Daulah",
+      "Jemaah Islamiyah",
+      "Jund al-Sham",
+      "Jund Ansar Allah",
+      "Komando Jihad",
+      "Lashkar-e-Islam",
+      "Lashkar-e-Omar",
+      "Lashkar-e-Taiba",
+      "Laskar Jihad",
+      "Maktab al-Khidamat",
+      "Muaskar Anole",
+      "Mujahedeen KOMPAK",
+      "Osbat al-Nour",
+      "Profetens Ummah",
+      "Al-Qaeda",
+      "Rawti Shax",
+      "Al-Shabaab",
+      "Shariat Jamaat",
+      "Ummah Tameer-e-Nau",
+      "Vilayat Galgaycho",
+      "Die Wahre Religion"
     ];
 
-    const getRandomInt = max => {
-      return Math.floor(Math.random() * Math.floor(max));
+    const getSecondName = (hash) => {
+      const aggregated = [...organizations, ...professions];
+      return aggregated[hash % aggregated.length];
     };
 
-    const getSecondName = () => {
-      const aggregated = [...origins, ...professions];
-      const index = getRandomInt(aggregated.length);
-      return index === 0 ? aggregated[0] : aggregated[index - 1];
+    const civility = (hash) => {
+      return hash % 2 ? "Abu" : "";
     };
 
-    const randomBoolean = max => {
-      return Boolean(Math.round(Math.random()));
+    const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+    const generateName = (inputName, country) => {
+      const hashedInput = hash(`${inputName}${country}`);
+      const particles = [
+        civility(hashedInput),
+        capitalize(inputName),
+        getSecondName(hashedInput),
+        getFromId(country),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return particles;
     };
 
-    const shouldAddCivility = () => {
-      return randomBoolean() ? "Abu " : "";
+    const nationalities = {
+      afghan: "Afghan",
+      albanian: "Albanian",
+      algerian: "Algerian",
+      american: "American",
+      andorran: "Andorran",
+      angolan: "Angolan",
+      antiguans: "Antiguans",
+      argentinean: "Argentinean",
+      armenian: "Armenian",
+      australian: "Australian",
+      austrian: "Austrian",
+      azerbaijani: "Azerbaijani",
+      bahamian: "Bahamian",
+      bahraini: "Bahraini",
+      bangladeshi: "Bangladeshi",
+      barbadian: "Barbadian",
+      barbudans: "Barbudans",
+      batswana: "Batswana",
+      belarusian: "Belarusian",
+      belgian: "Belgian",
+      belizean: "Belizean",
+      beninese: "Beninese",
+      bhutanese: "Bhutanese",
+      bolivian: "Bolivian",
+      bosnian: "Bosnian",
+      brazilian: "Brazilian",
+      british: "British",
+      bruneian: "Bruneian",
+      bulgarian: "Bulgarian",
+      burkinabe: "Burkinabe",
+      burmese: "Burmese",
+      burundian: "Burundian",
+      cambodian: "Cambodian",
+      cameroonian: "Cameroonian",
+      canadian: "Canadian",
+      "cape verdean": "Cape Verdean",
+      "central african": "Central African",
+      chadian: "Chadian",
+      chilean: "Chilean",
+      chinese: "Chinese",
+      colombian: "Colombian",
+      comoran: "Comoran",
+      congolese: "Congolese",
+      "costa rican": "Costa Rican",
+      croatian: "Croatian",
+      cuban: "Cuban",
+      cypriot: "Cypriot",
+      czech: "Czech",
+      danish: "Danish",
+      djibouti: "Djibouti",
+      dominican: "Dominican",
+      dutch: "Dutch",
+      "east timorese": "East Timorese",
+      ecuadorean: "Ecuadorean",
+      egyptian: "Egyptian",
+      emirian: "Emirian",
+      "equatorial guinean": "Equatorial Guinean",
+      eritrean: "Eritrean",
+      estonian: "Estonian",
+      ethiopian: "Ethiopian",
+      fijian: "Fijian",
+      filipino: "Filipino",
+      finnish: "Finnish",
+      french: "French",
+      gabonese: "Gabonese",
+      gambian: "Gambian",
+      georgian: "Georgian",
+      german: "German",
+      ghanaian: "Ghanaian",
+      greek: "Greek",
+      grenadian: "Grenadian",
+      guatemalan: "Guatemalan",
+      "guinea-bissauan": "Guinea-Bissauan",
+      guinean: "Guinean",
+      guyanese: "Guyanese",
+      haitian: "Haitian",
+      herzegovinian: "Herzegovinian",
+      honduran: "Honduran",
+      hungarian: "Hungarian",
+      icelander: "Icelander",
+      indian: "Indian",
+      indonesian: "Indonesian",
+      iranian: "Iranian",
+      iraqi: "Iraqi",
+      irish: "Irish",
+      israeli: "Israeli",
+      italian: "Italian",
+      ivorian: "Ivorian",
+      jamaican: "Jamaican",
+      japanese: "Japanese",
+      jordanian: "Jordanian",
+      kazakhstani: "Kazakhstani",
+      kenyan: "Kenyan",
+      "kittian and nevisian": "Kittian and Nevisian",
+      kuwaiti: "Kuwaiti",
+      kyrgyz: "Kyrgyz",
+      laotian: "Laotian",
+      latvian: "Latvian",
+      lebanese: "Lebanese",
+      liberian: "Liberian",
+      libyan: "Libyan",
+      liechtensteiner: "Liechtensteiner",
+      lithuanian: "Lithuanian",
+      luxembourger: "Luxembourger",
+      macedonian: "Macedonian",
+      malagasy: "Malagasy",
+      malawian: "Malawian",
+      malaysian: "Malaysian",
+      maldivan: "Maldivan",
+      malian: "Malian",
+      maltese: "Maltese",
+      marshallese: "Marshallese",
+      mauritanian: "Mauritanian",
+      mauritian: "Mauritian",
+      mexican: "Mexican",
+      micronesian: "Micronesian",
+      moldovan: "Moldovan",
+      monacan: "Monacan",
+      mongolian: "Mongolian",
+      moroccan: "Moroccan",
+      mosotho: "Mosotho",
+      motswana: "Motswana",
+      mozambican: "Mozambican",
+      namibian: "Namibian",
+      nauruan: "Nauruan",
+      nepalese: "Nepalese",
+      "new zealander": "New Zealander",
+      "ni-vanuatu": "Ni-Vanuatu",
+      nicaraguan: "Nicaraguan",
+      nigerien: "Nigerien",
+      "north korean": "North Korean",
+      "northern irish": "Northern Irish",
+      norwegian: "Norwegian",
+      omani: "Omani",
+      pakistani: "Pakistani",
+      palauan: "Palauan",
+      panamanian: "Panamanian",
+      "papua new guinean": "Papua New Guinean",
+      paraguayan: "Paraguayan",
+      peruvian: "Peruvian",
+      polish: "Polish",
+      portuguese: "Portuguese",
+      qatari: "Qatari",
+      romanian: "Romanian",
+      russian: "Russian",
+      rwandan: "Rwandan",
+      "saint lucian": "Saint Lucian",
+      salvadoran: "Salvadoran",
+      samoan: "Samoan",
+      "san marinese": "San Marinese",
+      "sao tomean": "Sao Tomean",
+      saudi: "Saudi",
+      scottish: "Scottish",
+      senegalese: "Senegalese",
+      serbian: "Serbian",
+      seychellois: "Seychellois",
+      "sierra leonean": "Sierra Leonean",
+      singaporean: "Singaporean",
+      slovakian: "Slovakian",
+      slovenian: "Slovenian",
+      "solomon islander": "Solomon Islander",
+      somali: "Somali",
+      "south african": "South African",
+      "south korean": "South Korean",
+      spanish: "Spanish",
+      "sri lankan": "Sri Lankan",
+      sudanese: "Sudanese",
+      surinamer: "Surinamer",
+      swazi: "Swazi",
+      swedish: "Swedish",
+      swiss: "Swiss",
+      syrian: "Syrian",
+      taiwanese: "Taiwanese",
+      tajik: "Tajik",
+      tanzanian: "Tanzanian",
+      thai: "Thai",
+      togolese: "Togolese",
+      tongan: "Tongan",
+      "trinidadian or tobagonian": "Trinidadian or Tobagonian",
+      tunisian: "Tunisian",
+      turkish: "Turkish",
+      tuvaluan: "Tuvaluan",
+      ugandan: "Ugandan",
+      ukrainian: "Ukrainian",
+      uruguayan: "Uruguayan",
+      uzbekistani: "Uzbekistani",
+      venezuelan: "Venezuelan",
+      vietnamese: "Vietnamese",
+      welsh: "Welsh",
+      yemenite: "Yemenite",
+      zambian: "Zambian",
+      zimbabwean: "Zimbabwean",
     };
+
+    const nationalitiesArray = Object.entries(nationalities)
+      .map(([id, value]) => ({
+        id,
+        value,
+      }))
+      .filter((nationality) =>
+        Boolean(origins.find((origin) => origin.id === nationality.id))
+      );
 
     /* src\components\Board.svelte generated by Svelte v3.22.3 */
     const file = "src\\components\\Board.svelte";
 
-    // (55:2) {#if name}
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[6] = list[i];
+    	return child_ctx;
+    }
+
+    // (58:4) {#each nationalities as nationality}
+    function create_each_block(ctx) {
+    	let option;
+    	let t_value = /*nationality*/ ctx[6].value + "";
+    	let t;
+    	let option_value_value;
+
+    	const block = {
+    		c: function create() {
+    			option = element("option");
+    			t = text(t_value);
+    			option.__value = option_value_value = /*nationality*/ ctx[6].id;
+    			option.value = option.__value;
+    			add_location(option, file, 58, 6, 1142);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, option, anchor);
+    			append_dev(option, t);
+    		},
+    		p: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(option);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(58:4) {#each nationalities as nationality}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (65:2) {#if name}
     function create_if_block(ctx) {
     	let p0;
     	let t1;
@@ -436,9 +781,9 @@ var app = (function () {
     			t1 = space();
     			p1 = element("p");
     			t2 = text(/*name*/ ctx[1]);
-    			add_location(p0, file, 55, 4, 1106);
-    			attr_dev(p1, "class", "generatedName svelte-18619hw");
-    			add_location(p1, file, 56, 4, 1139);
+    			add_location(p0, file, 65, 4, 1340);
+    			attr_dev(p1, "class", "generatedName svelte-1b1alrv");
+    			add_location(p1, file, 66, 4, 1373);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -460,7 +805,7 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(55:2) {#if name}",
+    		source: "(65:2) {#if name}",
     		ctx
     	});
 
@@ -471,9 +816,19 @@ var app = (function () {
     	let div;
     	let input;
     	let t0;
+    	let select;
+    	let t1;
     	let button;
-    	let t2;
+    	let t3;
     	let dispose;
+    	let each_value = nationalitiesArray;
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
     	let if_block = /*name*/ ctx[1] && create_if_block(ctx);
 
     	const block = {
@@ -481,17 +836,27 @@ var app = (function () {
     			div = element("div");
     			input = element("input");
     			t0 = space();
+    			select = element("select");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			t1 = space();
     			button = element("button");
     			button.textContent = "Generate my name";
-    			t2 = space();
+    			t3 = space();
     			if (if_block) if_block.c();
-    			attr_dev(input, "class", "nameInput svelte-18619hw");
+    			attr_dev(input, "class", "field svelte-1b1alrv");
     			attr_dev(input, "placeholder", placeholder);
-    			add_location(input, file, 50, 2, 929);
-    			attr_dev(button, "class", "generateBtn svelte-18619hw");
-    			add_location(button, file, 51, 2, 997);
-    			attr_dev(div, "class", "wrapper svelte-18619hw");
-    			add_location(div, file, 49, 0, 904);
+    			add_location(input, file, 55, 2, 973);
+    			attr_dev(select, "class", "field selectInput svelte-1b1alrv");
+    			if (/*country*/ ctx[2] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[5].call(select));
+    			add_location(select, file, 56, 2, 1037);
+    			attr_dev(button, "class", "generateBtn svelte-1b1alrv");
+    			add_location(button, file, 61, 2, 1231);
+    			attr_dev(div, "class", "wrapper svelte-1b1alrv");
+    			add_location(div, file, 54, 0, 948);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -501,19 +866,56 @@ var app = (function () {
     			append_dev(div, input);
     			set_input_value(input, /*inputName*/ ctx[0]);
     			append_dev(div, t0);
+    			append_dev(div, select);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(select, null);
+    			}
+
+    			select_option(select, /*country*/ ctx[2]);
+    			append_dev(div, t1);
     			append_dev(div, button);
-    			append_dev(div, t2);
+    			append_dev(div, t3);
     			if (if_block) if_block.m(div, null);
     			if (remount) run_all(dispose);
 
     			dispose = [
-    				listen_dev(input, "input", /*input_input_handler*/ ctx[3]),
-    				listen_dev(button, "click", /*handleGenerate*/ ctx[2], false, false, false)
+    				listen_dev(input, "input", /*input_input_handler*/ ctx[4]),
+    				listen_dev(select, "change", /*select_change_handler*/ ctx[5]),
+    				listen_dev(button, "click", /*handleGenerate*/ ctx[3], false, false, false)
     			];
     		},
     		p: function update(ctx, [dirty]) {
     			if (dirty & /*inputName*/ 1 && input.value !== /*inputName*/ ctx[0]) {
     				set_input_value(input, /*inputName*/ ctx[0]);
+    			}
+
+    			if (dirty & /*nationalities*/ 0) {
+    				each_value = nationalitiesArray;
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(select, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty & /*country*/ 4) {
+    				select_option(select, /*country*/ ctx[2]);
     			}
 
     			if (/*name*/ ctx[1]) {
@@ -533,6 +935,7 @@ var app = (function () {
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
+    			destroy_each(each_blocks, detaching);
     			if (if_block) if_block.d();
     			run_all(dispose);
     		}
@@ -554,10 +957,11 @@ var app = (function () {
     function instance($$self, $$props, $$invalidate) {
     	let inputName = "";
     	let name = "";
+    	let country = nationalitiesArray[0];
 
     	function handleGenerate() {
     		if (inputName) {
-    			$$invalidate(1, name = `${shouldAddCivility()}${inputName} ${getSecondName()}`);
+    			$$invalidate(1, name = generateName(inputName, country));
     		}
     	}
 
@@ -575,25 +979,39 @@ var app = (function () {
     		$$invalidate(0, inputName);
     	}
 
+    	function select_change_handler() {
+    		country = select_value(this);
+    		$$invalidate(2, country);
+    	}
+
     	$$self.$capture_state = () => ({
-    		getSecondName,
-    		shouldAddCivility,
+    		generateName,
+    		nationalities: nationalitiesArray,
     		placeholder,
     		inputName,
     		name,
+    		country,
     		handleGenerate
     	});
 
     	$$self.$inject_state = $$props => {
     		if ("inputName" in $$props) $$invalidate(0, inputName = $$props.inputName);
     		if ("name" in $$props) $$invalidate(1, name = $$props.name);
+    		if ("country" in $$props) $$invalidate(2, country = $$props.country);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [inputName, name, handleGenerate, input_input_handler];
+    	return [
+    		inputName,
+    		name,
+    		country,
+    		handleGenerate,
+    		input_input_handler,
+    		select_change_handler
+    	];
     }
 
     class Board extends SvelteComponentDev {

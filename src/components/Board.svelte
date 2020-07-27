@@ -1,14 +1,15 @@
 <script>
-  import { getSecondName } from "../models/secondName";
-  import { shouldAddCivility } from "../models/civility";
+  import { generateName } from "../models/Name";
+  import nationalities from "../data/nationalities";
 
   const placeholder = "John";
   let inputName = "";
   let name = "";
+  let country = nationalities[0];
 
   function handleGenerate() {
     if (inputName) {
-      name = `${shouldAddCivility()}${inputName} ${getSecondName()}`;
+      name = generateName(inputName, country);
     }
   }
 </script>
@@ -21,13 +22,17 @@
     align-items: center;
   }
 
-  .nameInput {
+  .field {
     min-width: 300px;
     height: 30px;
     border-radius: 5px;
     border: 1px solid #eee;
     padding: 0 10px;
     display: block;
+  }
+
+  .selectInput {
+    margin-top: 10px;
   }
 
   .generateBtn {
@@ -48,7 +53,12 @@
 </style>
 
 <div class="wrapper">
-  <input bind:value={inputName} class="nameInput" {placeholder} />
+  <input bind:value={inputName} class="field" {placeholder} />
+  <select bind:value={country} class="field selectInput">
+    {#each nationalities as nationality}
+      <option value={nationality.id}>{nationality.value}</option>
+    {/each}
+  </select>
   <button class="generateBtn" on:click={handleGenerate}>
     Generate my name
   </button>

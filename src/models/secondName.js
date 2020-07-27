@@ -1,8 +1,9 @@
 import origins from "../data/origins";
 import professions from "../data/professions";
 import origanizations from "../data/origanizations";
+import { hash } from "../utils/string";
 
-const getRandomInt = max => {
+const getRandomInt = (max) => {
   return Math.floor(Math.random() * Math.floor(max));
 };
 
