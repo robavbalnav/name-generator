@@ -3,7 +3,11 @@ import organizations from "../../data/organizations";
 
 export const getSecondName = (hash) => {
   const aggregated = [...organizations, ...professions];
-  return aggregated[hash % aggregated.length];
+  return aggregated[
+    hash < 0
+      ? ((hash % aggregated.length) + aggregated.length) % aggregated.length
+      : hash % aggregated.length
+  ];
 };
 
 export const civility = (hash) => {

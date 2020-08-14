@@ -496,7 +496,11 @@ var app = (function () {
 
     const getSecondName = (hash) => {
       const aggregated = [...organizations, ...professions];
-      return aggregated[hash % aggregated.length];
+      return aggregated[
+        hash < 0
+          ? ((hash % aggregated.length) + aggregated.length) % aggregated.length
+          : hash % aggregated.length
+      ];
     };
 
     const civility = (hash) => {
@@ -507,6 +511,7 @@ var app = (function () {
 
     const generateName = (inputName, country) => {
       const hashedInput = hash(`${inputName}${country}`);
+      console.log(getSecondName(hashedInput));
       const particles = [
         civility(hashedInput),
         capitalize(inputName),
