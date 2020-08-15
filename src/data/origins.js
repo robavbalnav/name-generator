@@ -1,7 +1,7 @@
 const origins = [
   {
     id: "saudi",
-    value: "al-Muhajir",
+    value: "al-Saudi",
   },
   {
     id: "german",
@@ -30,6 +30,66 @@ const origins = [
   {
     id: "tunisian",
     value: "al-Tunsi",
+  },
+  {
+    id: "afghan",
+    value: "al-Afghānī",
+  },
+  {
+    id: "algerian",
+    value: "al-Jzayry",
+  },
+  {
+    id: "armenian",
+    value: "al-Armini",
+  },
+  {
+    id: "australian",
+    value: "al'Usturalia",
+  },
+  {
+    id: "austrian",
+    value: "al-Namsawi",
+  },
+  {
+    id: "azerbaijani",
+    value: "al-Azeri",
+  },
+  {
+    id: "bahraini",
+    value: "al-Bahraini",
+  },
+  {
+    id: "belarusian",
+    value: "al-Bylarwsyi",
+  },
+  {
+    id: "belgian",
+    value: "al-Baljiki",
+  },
+  {
+    id: "british",
+    value: "al'Iinjlizia",
+  },
+  {
+    id: "bruneian",
+    value: "al-Brunayi",
+  },
+  {
+    id: "bulgarian",
+    value: "al-Bulgharia",
+  },
+  {
+    id: "cameroonian",
+    value: "al-Kamiruni",
+  },
+  {
+    id: "canadian",
+    value: "al-Kandi",
+  },
+  {
+    id: "chadian",
+    value: "al-Shadian",
   },
 ];
 

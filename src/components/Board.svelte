@@ -5,7 +5,7 @@
   const placeholder = "John";
   let inputName = "";
   let name = "";
-  let country = nationalities[0];
+  let country = nationalities[0].id;
 
   function handleGenerate() {
     if (inputName) {

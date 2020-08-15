@@ -414,7 +414,7 @@ var app = (function () {
     const origins = [
       {
         id: "saudi",
-        value: "al-Muhajir",
+        value: "al-Saudi",
       },
       {
         id: "german",
@@ -443,6 +443,66 @@ var app = (function () {
       {
         id: "tunisian",
         value: "al-Tunsi",
+      },
+      {
+        id: "afghan",
+        value: "al-Afghānī",
+      },
+      {
+        id: "algerian",
+        value: "al-Jzayry",
+      },
+      {
+        id: "armenian",
+        value: "al-Armini",
+      },
+      {
+        id: "australian",
+        value: "al'Usturalia",
+      },
+      {
+        id: "austrian",
+        value: "al-Namsawi",
+      },
+      {
+        id: "azerbaijani",
+        value: "al-Azeri",
+      },
+      {
+        id: "bahraini",
+        value: "al-Bahraini",
+      },
+      {
+        id: "belarusian",
+        value: "al-Bylarwsyi",
+      },
+      {
+        id: "belgian",
+        value: "al-Baljiki",
+      },
+      {
+        id: "british",
+        value: "al'Iinjlizia",
+      },
+      {
+        id: "bruneian",
+        value: "al-Brunayi",
+      },
+      {
+        id: "bulgarian",
+        value: "al-Bulgharia",
+      },
+      {
+        id: "cameroonian",
+        value: "al-Kamiruni",
+      },
+      {
+        id: "canadian",
+        value: "al-Kandi",
+      },
+      {
+        id: "chadian",
+        value: "al-Shadian",
       },
     ];
 
@@ -511,7 +571,6 @@ var app = (function () {
 
     const generateName = (inputName, country) => {
       const hashedInput = hash(`${inputName}${country}`);
-      console.log(getSecondName(hashedInput));
       const particles = [
         civility(hashedInput),
         capitalize(inputName),
@@ -749,7 +808,7 @@ var app = (function () {
     			t = text(t_value);
     			option.__value = option_value_value = /*nationality*/ ctx[6].id;
     			option.value = option.__value;
-    			add_location(option, file, 58, 6, 1142);
+    			add_location(option, file, 58, 6, 1145);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -786,9 +845,9 @@ var app = (function () {
     			t1 = space();
     			p1 = element("p");
     			t2 = text(/*name*/ ctx[1]);
-    			add_location(p0, file, 65, 4, 1340);
+    			add_location(p0, file, 65, 4, 1343);
     			attr_dev(p1, "class", "generatedName svelte-1b1alrv");
-    			add_location(p1, file, 66, 4, 1373);
+    			add_location(p1, file, 66, 4, 1376);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -854,14 +913,14 @@ var app = (function () {
     			if (if_block) if_block.c();
     			attr_dev(input, "class", "field svelte-1b1alrv");
     			attr_dev(input, "placeholder", placeholder);
-    			add_location(input, file, 55, 2, 973);
+    			add_location(input, file, 55, 2, 976);
     			attr_dev(select, "class", "field selectInput svelte-1b1alrv");
     			if (/*country*/ ctx[2] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[5].call(select));
-    			add_location(select, file, 56, 2, 1037);
+    			add_location(select, file, 56, 2, 1040);
     			attr_dev(button, "class", "generateBtn svelte-1b1alrv");
-    			add_location(button, file, 61, 2, 1231);
+    			add_location(button, file, 61, 2, 1234);
     			attr_dev(div, "class", "wrapper svelte-1b1alrv");
-    			add_location(div, file, 54, 0, 948);
+    			add_location(div, file, 54, 0, 951);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -962,7 +1021,7 @@ var app = (function () {
     function instance($$self, $$props, $$invalidate) {
     	let inputName = "";
     	let name = "";
-    	let country = nationalitiesArray[0];
+    	let country = nationalitiesArray[0].id;
 
     	function handleGenerate() {
     		if (inputName) {
