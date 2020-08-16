@@ -9,11 +9,12 @@ export const generateName = (inputName, country) => {
   const hashedInput = hash(`${inputName}${country}`);
   const particles = [
     civility(hashedInput),
-    capitalize(inputName),
+    inputName,
     getSecondName(hashedInput),
     getOriginFromId(country),
   ]
     .filter(Boolean)
+    .map(capitalize)
     .join(" ");
   return particles;
 };
